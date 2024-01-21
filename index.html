@@ -112,6 +112,25 @@
         offset = parseInt(subtitleoffsetInput.value, 10) / 1000;
       };
 
+      // Allow rewind and fast forward using the left and right arrow keys
+      const rewindTime = 5;
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "ArrowLeft" || event.key === "Left") {
+          // Rewind by the specified time
+          videoPlayer.currentTime = Math.max(
+            0,
+            videoPlayer.currentTime - rewindTime
+          );
+        }
+        if (event.key === "ArrowRight" || event.key === "Right") {
+          // Fast forward by the specified time
+          videoPlayer.currentTime = Math.min(
+            videoPlayer.duration,
+            videoPlayer.currentTime + rewindTime
+          );
+        }
+      });
+
       document
         .getElementById("video-input")
         .addEventListener("change", handleVideoInputChange);
