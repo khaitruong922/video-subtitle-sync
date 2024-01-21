@@ -129,6 +129,15 @@
             videoPlayer.currentTime + rewindTime
           );
         }
+
+        if (event.key === " ") {
+          // Toggle between play and pause
+          if (videoPlayer.paused) {
+            videoPlayer.play();
+          } else {
+            videoPlayer.pause();
+          }
+        }
       });
 
       document
