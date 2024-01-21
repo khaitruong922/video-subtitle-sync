@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Subtitle Sync</title>
+  </head>
+  <body>
+    <div id="container">
+      <div>
+        <label for="video-input">Video File</label>
+        <input type="file" id="video-input" accept="video/*" />
+      </div>
+      <div>
+        <label for="subtitle-file-input">Subtitle File (.srt)</label>
+        <input type="file" id="subtitle-file-input" accept=".srt" />
+      </div>
+      <div>
+        <label for="subtitle-offset">Subtitle offset (ms)</label>
+        <input type="number" id="subtitle-offset" value="0" />
+      </div>
+      <video id="video-player" controls></video>
+      <div id="subtitle-container"></div>
+    </div>
+
+    <script>
+      let subtitles = [];
+      let videoPlayer = document.getElementById("video-player");
+      let subtitlesContainer = document.getElementById("subtitle-container");
+      let offset = 0;
+
+      function parseSRT(data) {
+        const subtitles = [];
+        const lines = data.split("\n").map((line) => line.trim());
+        let currentIndex = -1;
+        lines.forEach((line) => {
+          if (/^\d+$/.test(line)) {
+            currentIndex++;
+          } else if (/^\d+:\d+:\d+,\d+ --> \d+:\d+:\d+,\d+$/.test(line)) {
+            let [startTime, endTime] = line
+              .split(" --> ")
+              .map((time) => time.replace(",", "."));
+            startTime = timeToSeconds(startTime);
+            endTime = timeToSeconds(endTime);
+            subtitles[currentIndex] = { startTime, endTime, text: "" };
+          } else if (line === "") {
+            currentIndex++;
+          } else {
+            subtitles[currentIndex].text += line + " ";
+          }
+        });
+        return subtitles;
+      }
+
+      const handleVideoInputChange = () => {
+        const fileInput = document.getElementById("video-input");
+        const file = fileInput.files[0];
+
+        if (file) {
+          const reader = new FileReader();
+
+          reader.onload = function (e) {
+            videoPlayer.src = URL.createObjectURL(file);
+          };
+
+          reader.readAsDataURL(file);
+        }
+      };
+
+      const handleSubtitleFileChange = () => {
+        const subtitleFileInput = document.getElementById(
+          "subtitle-file-input"
+        );
+        const file = subtitleFileInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const srtContent = e.target.result;
+            subtitles = parseSRT(srtContent);
+            displaySubtitles();
+          };
+          reader.readAsText(file);
+        }
+      };
+      const timeToSeconds = (timeString) => {
+        const [hours, minutes, secondsWithMillis] = timeString.split(":");
+        const [seconds, millis] = secondsWithMillis.split(".");
+        const totalSeconds =
+          parseInt(hours, 10) * 3600 +
+          parseInt(minutes, 10) * 60 +
+          parseInt(seconds, 10) +
+          parseInt(millis || 0, 10) / 1000;
+        return totalSeconds;
+      };
+
+      const displaySubtitles = () => {
+        const currentTime = videoPlayer.currentTime + offset;
+        subtitlesContainer.innerHTML = "";
+        const ok = subtitles.filter(
+          (subtitle) =>
+            currentTime >= subtitle.startTime && currentTime <= subtitle.endTime
+        );
+        ok.forEach((subtitle) => {
+          const subtitleElement = document.createElement("div");
+          subtitleElement.innerText = subtitle.text;
+          subtitlesContainer.appendChild(subtitleElement);
+        });
+      };
+
+      const handleSubtitleoffsetChange = () => {
+        const subtitleoffsetInput = document.getElementById("subtitle-offset");
+        offset = parseInt(subtitleoffsetInput.value, 10) / 1000;
+      };
+
+      document
+        .getElementById("video-input")
+        .addEventListener("change", handleVideoInputChange);
+      document
+        .getElementById("subtitle-file-input")
+        .addEventListener("change", handleSubtitleFileChange);
+      document
+        .getElementById("subtitle-offset")
+        .addEventListener("change", handleSubtitleoffsetChange);
+      videoPlayer.addEventListener("timeupdate", displaySubtitles);
+    </script>
+  </body>
+  <style>
+    #subtitle-container {
+      margin-top: 12px;
+      font-size: 32px;
+      text-align: center;
+    }
+    #container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #video-player {
+      margin-top: 12px;
+      height: 75vh;
+    }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</html>
