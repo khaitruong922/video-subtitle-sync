@@ -23,7 +23,7 @@
       </div>
       <video id="video-player" controls></video>
       <div id="subtitle-container"></div>
-      <div id="toggle-mode-btn">Dark Mode</div>
+      <div id="toggle-mode-btn"></div>
     </div>
 
     <script>
@@ -157,7 +157,7 @@
         } else {
           document.body.classList.remove("dark");
         }
-        toggleModeBtn.innerText = darkMode ? "Light Mode" : "Dark Mode";
+        toggleModeBtn.innerText = darkMode ? "Light" : "Dark";
         localStorage.setItem(darkModeKey, darkMode);
       };
       updateTheme();
@@ -206,7 +206,8 @@
       position: fixed;
       bottom: 10px;
       right: 10px;
-      padding: 10px;
+      padding: 10px 25px;
+      font-weight: bold;
       border: none;
       cursor: pointer;
       color: #fff;
