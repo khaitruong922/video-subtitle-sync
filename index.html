@@ -97,18 +97,32 @@
         return totalSeconds;
       };
 
+      let prev = [];
+
       const displaySubtitles = () => {
         const currentTime = videoPlayer.currentTime + offset;
-        subtitlesContainer.innerHTML = "";
-        const ok = subtitles.filter(
+        const currentSubs = subtitles.filter(
           (subtitle) =>
             currentTime >= subtitle.startTime && currentTime <= subtitle.endTime
         );
-        ok.forEach((subtitle) => {
-          const subtitleElement = document.createElement("div");
-          subtitleElement.innerText = subtitle.text;
-          subtitlesContainer.appendChild(subtitleElement);
-        });
+        let changed = prev.length !== currentSubs.length;
+        if (!changed) {
+          for (let i = 0; i < prev.length; i++) {
+            if (prev[i].text !== currentSubs[i].text) {
+              changed = true;
+              break;
+            }
+          }
+        }
+        if (changed) {
+          prev = currentSubs;
+          subtitlesContainer.innerHTML = "";
+          currentSubs.forEach((subtitle) => {
+            const subtitleElement = document.createElement("div");
+            subtitleElement.innerText = subtitle.text;
+            subtitlesContainer.appendChild(subtitleElement);
+          });
+        }
       };
 
       const handleSubtitleoffsetChange = () => {
