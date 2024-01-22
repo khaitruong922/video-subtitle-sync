@@ -66,7 +66,7 @@
           return {
             startTime: timeToSeconds(data[1], "."),
             endTime: timeToSeconds(data[2], "."),
-            text: data[9],
+            text,
           };
         });
       }
@@ -158,11 +158,16 @@
       const handleSubtitleoffsetChange = () => {
         const subtitleoffsetInput = document.getElementById("subtitle-offset");
         offset = parseInt(subtitleoffsetInput.value, 10) / 1000;
+        displaySubtitles();
       };
 
       // Allow rewind and fast forward using the left and right arrow keys
       const rewindTime = 5;
       document.addEventListener("keydown", function (event) {
+        if (document.activeElement !== document.body) {
+          return;
+        }
+
         if (event.key === "ArrowLeft" || event.key === "Left") {
           // Rewind by the specified time
           videoPlayer.currentTime = Math.max(
