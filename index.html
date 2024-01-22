@@ -64,6 +64,7 @@
 
           reader.onload = function (e) {
             videoPlayer.src = URL.createObjectURL(file);
+            document.title = file.name;
           };
 
           reader.readAsDataURL(file);
