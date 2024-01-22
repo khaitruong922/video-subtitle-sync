@@ -13,8 +13,8 @@
           <input type="file" id="video-input" accept="video/*" />
         </div>
         <div>
-          <label for="subtitle-file-input">Subtitle File (.srt)</label>
-          <input type="file" id="subtitle-file-input" accept=".srt" />
+          <label for="subtitle-file-input">Subtitle File</label>
+          <input type="file" id="subtitle-file-input" accept=".srt,.ass" />
         </div>
         <div>
           <label for="subtitle-offset">Subtitle offset (ms)</label>
@@ -49,10 +49,26 @@
           } else if (line === "") {
             currentIndex++;
           } else {
-            subtitles[currentIndex].text += line + " ";
+            subtitles[currentIndex].text += "\n" + line;
           }
         });
         return subtitles;
+      }
+
+      function parseASS(data) {
+        const lines = data
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line.startsWith("Dialogue:"));
+        return lines.map((line) => {
+          const data = line.split(",");
+          const text = data[9].split("\\N").join("\n");
+          return {
+            startTime: timeToSeconds(data[1], "."),
+            endTime: timeToSeconds(data[2], "."),
+            text: data[9],
+          };
+        });
       }
 
       const handleVideoInputChange = () => {
@@ -77,18 +93,29 @@
         );
         const file = subtitleFileInput.files[0];
         if (file) {
+          const ext = file.name.split(".").pop();
           const reader = new FileReader();
           reader.onload = function (e) {
-            const srtContent = e.target.result;
-            subtitles = parseSRT(srtContent);
-            displaySubtitles();
+            const content = e.target.result;
+            switch (ext) {
+              case "srt":
+                subtitles = parseSRT(content);
+                break;
+              case "ass":
+                subtitles = parseASS(content);
+                break;
+              default:
+                alert("Invalid subtitle file");
+                return;
+            }
           };
           reader.readAsText(file);
         }
       };
-      const timeToSeconds = (timeString) => {
+
+      const timeToSeconds = (timeString, decimalSep = ",") => {
         const [hours, minutes, secondsWithMillis] = timeString.split(":");
-        const [seconds, millis] = secondsWithMillis.split(".");
+        const [seconds, millis] = secondsWithMillis.split(decimalSep);
         const totalSeconds =
           parseInt(hours, 10) * 3600 +
           parseInt(minutes, 10) * 60 +
@@ -118,9 +145,12 @@
           prev = currentSubs;
           subtitlesContainer.innerHTML = "";
           currentSubs.forEach((subtitle) => {
-            const subtitleElement = document.createElement("div");
-            subtitleElement.innerText = subtitle.text;
-            subtitlesContainer.appendChild(subtitleElement);
+            const lines = subtitle.text.split("\n");
+            lines.forEach((line) => {
+              const subtitleElement = document.createElement("div");
+              subtitleElement.innerText = line;
+              subtitlesContainer.appendChild(subtitleElement);
+            });
           });
         }
       };
@@ -196,8 +226,11 @@
       margin: 0;
       padding: 0;
     }
+    html {
+      overflow-y: scroll;
+    }
     body {
-      padding-top: 16px;
+      padding-top: 12px;
     }
     .dark {
       background-color: #000;
@@ -215,7 +248,7 @@
     }
     #video-player {
       margin-top: 12px;
-      height: 80vh;
+      height: 75vh;
     }
     #toggle-mode-btn {
       position: fixed;
