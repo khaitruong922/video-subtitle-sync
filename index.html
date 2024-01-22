@@ -7,20 +7,23 @@
   </head>
   <body>
     <div id="container">
-      <div>
-        <label for="video-input">Video File</label>
-        <input type="file" id="video-input" accept="video/*" />
-      </div>
-      <div>
-        <label for="subtitle-file-input">Subtitle File (.srt)</label>
-        <input type="file" id="subtitle-file-input" accept=".srt" />
-      </div>
-      <div>
-        <label for="subtitle-offset">Subtitle offset (ms)</label>
-        <input type="number" id="subtitle-offset" value="0" />
+      <div id="inputs">
+        <div>
+          <label for="video-input">Video File</label>
+          <input type="file" id="video-input" accept="video/*" />
+        </div>
+        <div>
+          <label for="subtitle-file-input">Subtitle File (.srt)</label>
+          <input type="file" id="subtitle-file-input" accept=".srt" />
+        </div>
+        <div>
+          <label for="subtitle-offset">Subtitle offset (ms)</label>
+          <input type="number" id="subtitle-offset" value="0" />
+        </div>
       </div>
       <video id="video-player" controls></video>
       <div id="subtitle-container"></div>
+      <div id="toggle-mode-btn">Dark Mode</div>
     </div>
 
     <script>
@@ -140,6 +143,25 @@
         }
       });
 
+      const darkModeKey = "darkMode";
+      let darkMode =
+        localStorage.getItem(darkModeKey) === "false" ? false : true;
+      const toggleModeBtn = document.getElementById("toggle-mode-btn");
+      const toggleDarkMode = () => {
+        darkMode = !darkMode;
+        updateTheme();
+      };
+      const updateTheme = () => {
+        if (darkMode) {
+          document.body.classList.add("dark");
+        } else {
+          document.body.classList.remove("dark");
+        }
+        toggleModeBtn.innerText = darkMode ? "Light Mode" : "Dark Mode";
+        localStorage.setItem(darkModeKey, darkMode);
+      };
+      updateTheme();
+
       document
         .getElementById("video-input")
         .addEventListener("change", handleVideoInputChange);
@@ -150,9 +172,22 @@
         .getElementById("subtitle-offset")
         .addEventListener("change", handleSubtitleoffsetChange);
       videoPlayer.addEventListener("timeupdate", displaySubtitles);
+      toggleModeBtn.addEventListener("click", toggleDarkMode);
     </script>
   </body>
   <style>
+    * {
+      font-family: "Helvetica", "Arial", sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      padding-top: 12px;
+    }
+    .dark {
+      background-color: #000;
+      color: #fff;
+    }
     #subtitle-container {
       margin-top: 12px;
       font-size: 32px;
@@ -167,6 +202,21 @@
       margin-top: 12px;
       height: 80vh;
     }
+    #toggle-mode-btn {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      background-color: #000;
+      border-radius: 25px;
+    }
+    .dark #toggle-mode-btn {
+      color: #000;
+      background-color: #fff;
+    }
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
       -webkit-appearance: none;
@@ -174,6 +224,17 @@
     }
     input[type="number"] {
       -moz-appearance: textfield;
+    }
+    input[type="file"] {
+      padding: 0;
+    }
+    .hide {
+      display: none;
+    }
+    #inputs {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
     }
   </style>
 </html>
