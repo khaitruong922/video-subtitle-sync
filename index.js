@@ -126,7 +126,7 @@ const handleSubtitleOffsetChange = () => {
   displaySubtitles();
 };
 
-const rewindTime = 5;
+const rewindTime = 10;
 document.addEventListener("keydown", function (event) {
   if (document.activeElement !== document.body) {
     return;
